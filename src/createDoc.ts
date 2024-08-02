@@ -1,3 +1,4 @@
+import {ParsedObject} from "./interfaces";
 
 const docx = require('docx');
 const fs = require('fs');
@@ -6,20 +7,46 @@ const { Packer, Paragraph, TextRun } = docx
 
 /**
  * Creates a DOCX document with the provided texts
- * @param {string[]} texts - Array of texts to include in the document
  */
-async function createDoc(texts: string[]): Promise<void> {
+async function createDoc(texts: ParsedObject[]): Promise<void> {
   const doc = new docx.Document({
     creator: "Your Name",
     title: "Sample Document",
     description: "A sample document created with docx",
     sections: [
       {
-        children: texts.map(text => new Paragraph({
-          children: [
-            new TextRun(text),
-          ],
-        })),
+        children: texts.flatMap(text => [
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: `Название: ${text.title}`,
+                bold: true,
+              }),
+            ],
+          }),
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: `Цена: ${text.price}`,
+                italics: true,
+              }),
+            ],
+          }),
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: `${text.text}`,
+              }),
+            ],
+          }),
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: '',
+              }),
+            ],
+          }),
+        ]),
       }
     ]
   });

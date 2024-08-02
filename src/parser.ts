@@ -1,6 +1,7 @@
 import puppeteer, {Browser, ElementHandle, NodeFor, Page} from 'puppeteer';
 import dotenv from 'dotenv';
 import {Interface} from "readline";
+import {ParsedObject} from "./interfaces";
 const createDoc = require('./createDoc')
 const readline = require('readline');
 
@@ -61,25 +62,39 @@ async function login(page: Page, email: string, password: string): Promise<void>
 
 /**
  * Parses the content after login
+ * @returns {Promise<{title: string, price: string, text: string}[]>}
  */
-async function parseContent(page: Page): Promise<string[]> {
+async function parseContent(page: Page): Promise<ParsedObject[]> {
   console.log('Parsing content after login');
-  const texts: string[] = await page.$$eval('.filter .image p', elements =>
+  const showMoreButtons = await page.$$('.show_more');
+  for (const button of showMoreButtons) {
+    await button.click();
+  }
+
+  const data:ParsedObject[] = await page.$$eval('.lot', elements =>
     elements.map(el => {
-      const text: string | null = el?.textContent;
-      return text ? text.trim() : '';
+
+      const titleElement:Element|null = el.querySelector('.lot_title');
+      const priceElement:Element|null = el.querySelector('.current_price');
+      const textElement:Element|null = el.querySelector('.lot_text .text');
+
+      const title:string|null = titleElement?.textContent?.trim() || '';
+      const price:string|null = priceElement?.textContent?.trim() || '';
+      const text:string|null = textElement?.textContent?.trim() || '';
+
+      return { title, price, text };
     })
   );
 
-  return texts;
+  return data;
 }
 
 /**
  * Handles document creation with parsed texts
  */
-async function handleDocumentCreation(texts: string[]): Promise<void> {
-  console.log('Creating document with parsed texts');
-  await createDoc(texts);
+async function handleDocumentCreation(data: ParsedObject[]): Promise<void> {
+  console.log('Creating document with parsed data');
+  await createDoc(data);
 }
 
 
@@ -98,12 +113,12 @@ async function parseWebsite(url: string): Promise<void> {
     const { email, password } = loadEmailAndPassword();
     await login(page, email, password);
 
-    const texts:string[] = await parseContent(page);
-    await handleDocumentCreation(texts);
+    const data:ParsedObject[] = await parseContent(page);
+    await handleDocumentCreation(data);
   } catch (error) {
     console.error('Error during parsing:', error);
   } finally {
-    await browser.close();
+    // await browser.close();
     console.log('Browser closed');
   }
 }
