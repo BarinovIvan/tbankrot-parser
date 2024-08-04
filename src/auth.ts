@@ -2,9 +2,6 @@ import { Page } from 'puppeteer';
 
 /**
  * Logs into the website using the provided credentials
- * @param page
- * @param email
- * @param password
  */
 export async function login(page: Page, email: string, password: string): Promise<void> {
   try {
