@@ -8,7 +8,7 @@ const { Packer, Paragraph, TextRun } = docx
 /**
  * Creates a DOCX document with the provided texts
  */
-async function createDoc(texts: ParsedObject[]): Promise<void> {
+export async function createDoc(texts: ParsedObject[]): Promise<void> {
   const doc = new docx.Document({
     creator: "Your Name",
     title: "Sample Document",
@@ -54,5 +54,3 @@ async function createDoc(texts: ParsedObject[]): Promise<void> {
   const buffer = await Packer.toBuffer(doc);
   fs.writeFileSync('output.docx', buffer);
 }
-
-module.exports = createDoc

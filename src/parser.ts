@@ -1,22 +1,13 @@
-import puppeteer, {Browser, ElementHandle, NodeFor, Page} from 'puppeteer';
+import { Page } from 'puppeteer';
 import dotenv from 'dotenv';
-import {Interface} from "readline";
-import {ParsedObject} from "./interfaces";
-const createDoc = require('./createDoc')
+import { Interface } from "readline";
+import { ParsedObject } from "./interfaces";
+import { initializeBrowser } from "./browserInitialization";
+import { login } from "./auth";
+import { createDoc } from "./createDoc";
 const readline = require('readline');
 
 dotenv.config();
-
-/**
- * Initializes the browser and page
- * @returns {Promise<{browser: Browser, page: Page}>}
- */
-async function initializeBrowser(): Promise<{ browser: Browser, page: Page }> {
-  const browser: Browser = await puppeteer.launch({ headless: false });
-  const page: Page = await browser.newPage();
-
-  return { browser, page };
-}
 
 /**
  * Loads and validates email and password
@@ -33,36 +24,7 @@ function loadEmailAndPassword(): { email: string, password: string } {
 }
 
 /**
- * Logs into the website using the provided credentials
- * @param page
- * @param email
- * @param password
- */
-async function login(page: Page, email: string, password: string): Promise<void> {
-  try {
-    console.log('Clicking login button');
-    await page.locator('#login').click();
-
-    console.log('Filling email');
-    await page.locator('#lg-mail').fill(email);
-
-    console.log('Filling password');
-    await page.locator('#lg-pas').fill(password);
-
-    console.log('Clicking login button to submit');
-    await page.locator('#login-btn').click();
-
-    console.log('Waiting for navigation');
-    await page.waitForNavigation({ timeout: 5000 });
-  } catch (error) {
-    console.error('Login failed:', error);
-    throw error;
-  }
-}
-
-/**
  * Parses the content after login
- * @returns {Promise<{title: string, price: string, text: string}[]>}
  */
 async function parseContent(page: Page): Promise<ParsedObject[]> {
   console.log('Parsing content after login');
@@ -104,7 +66,7 @@ async function handleDocumentCreation(data: ParsedObject[]): Promise<void> {
  * @returns {Promise<void>}
  */
 async function parseWebsite(url: string): Promise<void> {
-  const { browser, page } = await initializeBrowser();
+  const { page } = await initializeBrowser();
 
   try {
     console.log(`Navigating to ${url}`);
@@ -132,9 +94,7 @@ const rl:Interface = readline.createInterface({
 
 // Prompt user for URL
 rl.question('Please enter the URL to parse: ', (url:string) => {
-  const urlConst:string = 'https://tbankrot.ru/?search=&swp=any_word&stop=&num=&debtor_cat=0&debtor=&au=&org=&start_p1=&start_p2=&p1=&p2=&min_p1=&min_p2=&pp_1=&pp_2=&st_1=&st_2=&sz_1=&sz_2=&ez_1=&ez_2=&et_1=&et_2=&parent_cat=2&sub_cat=5&sort_order=desc&sort=&show_period=all'
-
-  parseWebsite(urlConst)
+  parseWebsite(url)
     .then(() => {
       console.log('Parsing complete');
       rl.close();
