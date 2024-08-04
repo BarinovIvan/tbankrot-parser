@@ -62,8 +62,6 @@ async function handleDocumentCreation(data: ParsedObject[]): Promise<void> {
 
 /**
  * Parses the specified URL using Puppeteer
- * @param {string} url - The URL to parse
- * @returns {Promise<void>}
  */
 async function parseWebsite(url: string): Promise<void> {
   const { page } = await initializeBrowser();
